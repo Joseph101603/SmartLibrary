@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLibrary - Staff Dashboard</title>
+    <style>
+        :root {
+            --primary: #cc0000; 
+            --primary-hover: #a30000;
+            --bg: #f4f4f5;
+            --surface: #ffffff;
+            --text: #171717;
+            --text-light: #525252;
+            --border: #d4d4d8;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: var(--bg); 
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container { 
+            width: 100%;
+            max-width: 800px; 
+            background: var(--surface); 
+            padding: 30px; 
+            border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            border-top: 5px solid var(--primary);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h2 { margin: 0; font-size: 22px; text-transform: uppercase; color: var(--primary); }
+        
+        .nav-link { color: var(--text-light); text-decoration: none; font-weight: bold; font-size: 14px; }
+        .nav-link:hover { color: var(--primary); }
+
+        /* KPI Dashboard Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            border-top: 3px solid var(--text-light);
+        }
+
+        .stat-card.active { border-top-color: #15803d; }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; justify-content: space-between; align-items: flex-end;}
+        
+        button { background-color: var(--text-light); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 13px;}
+        button:hover { background-color: #262626; }
+        
+        .booking-card {
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .booking-details h4 { margin: 0 0 5px 0; font-size: 18px; color: #171717; }
+        .booking-details p { margin: 0; font-size: 14px; color: var(--text-light); }
+        
+        .cancel-btn { background-color: var(--primary); }
+        .cancel-btn:hover { background-color: var(--primary-hover); }
+        
+        .no-data { text-align: center; color: var(--text-light); font-style: italic; padding: 20px; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .booking-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .cancel-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h2>Staff Dashboard</h2>
+            <a href="/" class="nav-link">← Back to Map</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="statTotalToday">0</div>
+                <div class="stat-label">Bookings Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statUniqueStudents">0</div>
+                <div class="stat-label">Unique Students</div>
+            </div>
+            <div class="stat-card active">
+                <div class="stat-value" id="statActiveNow">0</div>
+                <div class="stat-label">Active Right Now</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3 style="margin: 0; font-size: 16px; color: var(--text-light); text-transform: uppercase;">All Active Records</h3>
+            <button onclick="loadAllBookings()">Refresh Data</button>
+        </div>
+
+        <div id="adminBookingList">
+            <div class="no-data">Loading bookings...</div>
+        </div>
+    </div>
+
+    <script>
+        function formatTime(timeString) {
+            const [date, time] = timeString.split(' ');
+            const [hour, min] = time.split(':');
+            const h = parseInt(hour);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const formattedHour = h % 12 || 12;
+            return `${date} | ${formattedHour}:${min} ${ampm}`;
+        }
+
+        function calculateKPIs(bookings) {
+            const now = new Date();
+            // Get local date string in YYYY-MM-DD format based on the browser's timezone
+            const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+            // 1. Total Bookings Today
+            const todaysBookings = bookings.filter(b => b.start_time.startsWith(todayStr));
+            document.getElementById('statTotalToday').textContent = todaysBookings.length;
+
+            // 2. Unique Students Today
+            const uniqueStudents = new Set(todaysBookings.map(b => b.student_id)).size;
+            document.getElementById('statUniqueStudents').textContent = uniqueStudents;
+
+            // 3. Active Right Now
+            const activeNow = todaysBookings.filter(b => {
+                const start = new Date(b.start_time.replace(' ', 'T'));
+                const end = new Date(b.end_time.replace(' ', 'T'));
+                return now >= start && now <= end;
+            }).length;
+            document.getElementById('statActiveNow').textContent = activeNow;
+        }
+
+        async function loadAllBookings() {
+            const container = document.getElementById('adminBookingList');
+            container.innerHTML = '<div class="no-data">Loading bookings...</div>';
+
+            try {
+                const res = await fetch('/bookings');
+                const bookings = await res.json();
+                
+                // Update KPI Dashboard
+                calculateKPIs(bookings);
+
+                container.innerHTML = '';
+                
+                if (bookings.length === 0) {
+                    container.innerHTML = '<div class="no-data">No active bookings found.</div>';
+                    return;
+                }
+
+                // Sort bookings by date and time
+                bookings.sort((a, b) => new Date(a.start_time.replace(' ','T')) - new Date(b.start_time.replace(' ','T')));
+
+                bookings.forEach(b => {
+                    const card = document.createElement('div');
+                    card.className = 'booking-card';
+                    card.innerHTML = `
+                        <div class="booking-details">
+                            <h4>Seat S${b.desk_id}</h4>
+                            <p><strong>Student ID:</strong> ${b.student_id}</p>
+                            <p><strong>Time:</strong> ${formatTime(b.start_time)} to ${formatTime(b.end_time).split(' | ')[1]}</p>
+                        </div>
+                        <button class="cancel-btn" onclick="adminCancelBooking('${b.id}')">Revoke</button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = '<div class="no-data" style="color: red;">Error loading database.</div>';
+            }
+        }
+
+        async function adminCancelBooking(bookingId) {
+            if(!confirm("Are you sure you want to revoke this student's reservation?")) return;
+
+            const res = await fetch(`/cancel/${bookingId}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert("Booking revoked successfully.");
+                loadAllBookings();
+            } else {
+                alert("Error cancelling booking.");
+            }
+        }
+
+        loadAllBookings();
+        // Auto-refresh stats every 60 seconds
+        setInterval(loadAllBookings, 60000);
+    </script>
+</body>
+</html>

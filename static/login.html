@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLibrary - Login</title>
+    <style>
+        :root {
+            --primary: #cc0000; 
+            --primary-hover: #a30000;
+            --bg: #f4f4f5;
+            --surface: #ffffff;
+            --text: #171717;
+            --text-light: #525252;
+            --border: #d4d4d8;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            padding: 40px 20px; 
+            background-color: var(--bg); 
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        
+        .auth-container { 
+            width: 100%;
+            max-width: 400px; 
+            background: var(--surface); 
+            padding: 40px 30px; 
+            border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            border-top: 5px solid var(--primary);
+        }
+
+        h2 { margin-top: 0; font-size: 24px; text-transform: uppercase; color: var(--primary); text-align: center; margin-bottom: 25px;}
+        
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-light); text-transform: uppercase;}
+        input, button { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 4px; font-size: 15px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        button.primary-btn { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;}
+        button.primary-btn:hover { background-color: var(--primary-hover); }
+
+        .toggle-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-light); }
+        .toggle-link a { color: var(--primary); cursor: pointer; text-decoration: none; font-weight: bold;}
+        .toggle-link a:hover { text-decoration: underline; }
+
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; font-weight: 500; display: none; text-align: center; font-size: 14px;}
+        .error { background: #fee2e2; color: #991b1b; display: block; border: 1px solid #f87171;}
+        .success { background: #dcfce3; color: #166534; display: block; border: 1px solid #4ade80; }
+
+        #registerForm { display: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        
+        <div id="loginForm">
+            <h2>Student Login</h2>
+            <div id="loginMessage" class="message"></div>
+            <form onsubmit="handleAuth(event, '/api/login')">
+                <div class="form-group">
+                    <label>Student ID</label>
+                    <input type="text" id="login_student_id" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login_password" required>
+                </div>
+                <button type="submit" class="primary-btn">Sign In</button>
+            </form>
+            <div class="toggle-link">
+                Don't have an account? <a onclick="toggleForms()">Register here</a>
+            </div>
+        </div>
+
+        <div id="registerForm">
+            <h2>Create Account</h2>
+            <div id="registerMessage" class="message"></div>
+            <form onsubmit="handleAuth(event, '/api/register')">
+                <div class="form-group">
+                    <label>University Email</label>
+                    <input type="email" id="reg_email" placeholder="example@mymail.mapua.edu.ph" required>
+                </div>
+                <div class="form-group">
+                    <label>Student ID</label>
+                    <input type="text" id="reg_student_id" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg_password" required>
+                </div>
+                <button type="submit" class="primary-btn">Register</button>
+            </form>
+            <div class="toggle-link">
+                Already registered? <a onclick="toggleForms()">Sign in</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function toggleForms() {
+            const login = document.getElementById('loginForm');
+            const register = document.getElementById('registerForm');
+            if (login.style.display === 'none') {
+                login.style.display = 'block';
+                register.style.display = 'none';
+            } else {
+                login.style.display = 'none';
+                register.style.display = 'block';
+            }
+            document.getElementById('loginMessage').style.display = 'none';
+            document.getElementById('registerMessage').style.display = 'none';
+        }
+
+        async function handleAuth(e, endpoint) {
+            e.preventDefault();
+            const isLogin = endpoint === '/api/login';
+            const msgDiv = document.getElementById(isLogin ? 'loginMessage' : 'registerMessage');
+            
+            const payload = {
+                student_id: document.getElementById(isLogin ? 'login_student_id' : 'reg_student_id').value,
+                password: document.getElementById(isLogin ? 'login_password' : 'reg_password').value
+            };
+
+            if (!isLogin) {
+                payload.email = document.getElementById('reg_email').value;
+            }
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await res.json();
+
+            if (res.ok) {
+                msgDiv.className = 'message success';
+                msgDiv.textContent = result.message;
+                // Redirect to the main library map immediately after success!
+                setTimeout(() => window.location.href = '/', 800);
+            } else {
+                msgDiv.className = 'message error';
+                msgDiv.textContent = result.error;
+            }
+        }
+    </script>
+</body>
+</html>

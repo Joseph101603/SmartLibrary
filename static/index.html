@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLibrary - Desk Booking</title>
+    <style>
+        :root {
+            --primary: #cc0000; 
+            --primary-hover: #a30000;
+            --bg: #f4f4f5;
+            --surface: #ffffff;
+            --text: #171717;
+            --text-light: #525252;
+            --border: #d4d4d8;
+            --seat-available: #ffffff;
+            --seat-reserved: #e4e4e7;
+            --seat-selected: #fef08a; 
+            --seat-selected-border: #eab308;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            padding: 40px 20px; 
+            background-color: #f4f4f5; 
+            color: #171717;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .container { 
+            width: 100%;
+            max-width: 600px; 
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            border-top: 5px solid #cc0000;
+        }
+
+        h2 { 
+            margin-top: 0; 
+            font-size: 22px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            color: #cc0000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-link {
+            color: #cc0000; 
+            text-decoration: none; 
+            font-size: 13px; 
+            font-weight: bold;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+        
+        .stats-counter {
+            background: #f4f4f5;
+            border: 1px solid #d4d4d8;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #525252; text-transform: uppercase;}
+        input, select, button { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #d4d4d8; border-radius: 4px; font-size: 15px; outline: none; }
+        input:focus, select:focus { border-color: #cc0000; }
+        .time-row { display: flex; gap: 12px; }
+
+        .library-floor {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 4px;
+            border: 2px dashed #d4d4d8;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .floor-label {
+            text-align: center;
+            color: #525252;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .seating-chart {
+            display: grid;
+            grid-template-columns: 1fr 1fr 40px 1fr 1fr; 
+            gap: 15px;
+        }
+
+        .aisle { width: 100%; }
+
+        .seat {
+            background-color: #ffffff;
+            border: 2px solid #d4d4d8;
+            border-radius: 4px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #525252;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.02);
+        }
+
+        .seat:hover:not(.reserved) { border-color: #cc0000; color: #cc0000; }
+        .seat.selected { background-color: #fef08a; border-color: #eab308; color: #854d0e; }
+        .seat.reserved { background-color: #e4e4e7; border-color: #e4e4e7; color: #a1a1aa; cursor: not-allowed; box-shadow: none; }
+
+        .desk-info-panel {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .desk-info-panel h4 { margin: 0 0 10px 0; color: #92400e; }
+        .schedule-list { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+        .schedule-list li { background: white; padding: 10px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #fef3c7; display: flex; justify-content: space-between; align-items: center;}
+        .no-bookings { color: #78716c; font-style: italic; }
+
+        button.primary-btn { background-color: #cc0000; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;}
+        button.primary-btn:hover { background-color: #a30000; }
+        
+        button.cancel-btn { background-color: #525252; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: auto; font-weight: bold;}
+        button.cancel-btn:hover { background-color: #262626; }
+
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; font-weight: 500; display: none; }
+        .error { background: #fee2e2; color: #991b1b; display: block; border: 1px solid #f87171;}
+        .success { background: #dcfce3; color: #166534; display: block; border: 1px solid #4ade80; }
+
+        /* --- MOBILE RESPONSIVE DESIGN --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; padding: 15px 10px; align-items: center; }
+            .container { padding: 20px 15px; }
+            .time-row { flex-direction: column; gap: 0; }
+            .seating-chart { gap: 8px; }
+            .seat { height: 45px; font-size: 13px; padding: 5px; }
+            h2 { font-size: 18px; }
+            .stats-counter { font-size: 12px; display: flex; flex-direction: column; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>
+            SmartLibrary Booking
+            <a href="/logout" class="logout-link">LOGOUT</a>
+        </h2>
+        
+        <div id="statsCounter" class="stats-counter">
+            <span style="color: #525252;">Total Seats: 20</span> &nbsp;|&nbsp; 
+            <span id="statAvailable" style="color: #15803d;">Available: 20</span> &nbsp;|&nbsp; 
+            <span id="statReserved" style="color: #cc0000;">Reserved: 0</span>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="library-floor">
+            <div class="floor-label">North Study Zone</div>
+            <div id="seatingChart" class="seating-chart"></div>
+        </div>
+
+        <div id="deskInfoPanel" class="desk-info-panel">
+            <h4 id="selectedDeskTitle">Desk Schedule</h4>
+            <ul id="deskScheduleList" class="schedule-list"></ul>
+        </div>
+
+        <form id="bookForm">
+            <input type="hidden" id="desk_id" name="desk_id" required>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="book_date" required>
+            </div>
+            
+            <div class="time-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Start Time</label>
+                    <select id="start_time" required>
+                        <option value="08:00">8:00 AM</option>
+                        <option value="09:00" selected>9:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="13:00">1:00 PM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="17:00">5:00 PM</option>
+                        <option value="18:00">6:00 PM</option>
+                        <option value="19:00">7:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>End Time (Max 3 Hrs)</label>
+                    <select id="end_time" required>
+                        <option value="09:00">9:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="12:00" selected>12:00 PM</option>
+                        <option value="13:00">1:00 PM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="17:00">5:00 PM</option>
+                        <option value="18:00">6:00 PM</option>
+                        <option value="19:00">7:00 PM</option>
+                        <option value="20:00">8:00 PM</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="primary-btn">Confirm Booking</button>
+        </form>
+    </div>
+
+    <script>
+        const dateInput = document.getElementById('book_date');
+        const startTimeSelect = document.getElementById('start_time');
+        const endTimeSelect = document.getElementById('end_time');
+        const deskIdInput = document.getElementById('desk_id');
+        const deskInfoPanel = document.getElementById('deskInfoPanel');
+        const deskScheduleList = document.getElementById('deskScheduleList');
+        const selectedDeskTitle = document.getElementById('selectedDeskTitle');
+        const statAvailable = document.getElementById('statAvailable');
+        const statReserved = document.getElementById('statReserved');
+        const messageDiv = document.getElementById('message');
+        
+        let currentBookings = [];
+
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        dateInput.min = today;
+
+        function buildSeatingChart() {
+            const chart = document.getElementById('seatingChart');
+            let deskCounter = 1;
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    if (col === 2) {
+                        chart.innerHTML += `<div class="aisle"></div>`;
+                    } else {
+                        chart.innerHTML += `<div class="seat" data-desk-id="${deskCounter}" onclick="selectSeat(${deskCounter})">S${deskCounter}</div>`;
+                        deskCounter++;
+                    }
+                }
+            }
+        }
+        buildSeatingChart();
+
+        function formatTime(timeString) {
+            const [date, time] = timeString.split(' ');
+            const [hour, min] = time.split(':');
+            const h = parseInt(hour);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const formattedHour = h % 12 || 12;
+            return `${formattedHour}:${min} ${ampm}`;
+        }
+
+        function viewDeskSchedule(deskId) {
+            deskInfoPanel.style.display = 'block';
+            selectedDeskTitle.textContent = `Schedule for Seat S${deskId} (${dateInput.value})`;
+            deskScheduleList.innerHTML = '';
+
+            const selectedDate = dateInput.value;
+            const deskBookings = currentBookings.filter(b => {
+                const bookingDate = b.start_time.split(' ')[0];
+                return b.desk_id == deskId && bookingDate === selectedDate;
+            });
+
+            if (deskBookings.length === 0) {
+                deskScheduleList.innerHTML = `<li class="no-bookings">No bookings for this date. Fully available.</li>`;
+            } else {
+                deskBookings.sort((a, b) => new Date(a.start_time.replace(' ','T')) - new Date(b.start_time.replace(' ','T')));
+                deskBookings.forEach(b => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div style="flex-grow: 1;">
+                            <span style="color: #92400e;"><b>${formatTime(b.start_time)} - ${formatTime(b.end_time)}</b></span><br>
+                            <span style="color: #78716c; font-size: 12px;">ID: ${b.student_id}</span>
+                        </div>
+                        <button type="button" class="cancel-btn" onclick="cancelBooking('${b.id}')">Cancel</button>
+                    `;
+                    deskScheduleList.appendChild(li);
+                });
+            }
+        }
+
+        async function cancelBooking(bookingId) {
+            const res = await fetch(`/cancel/${bookingId}`, { method: 'DELETE' });
+            const result = await res.json();
+            
+            if (res.ok) {
+                messageDiv.className = 'message success';
+                messageDiv.textContent = result.message;
+                updateMapAvailability();
+            } else {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = result.error;
+            }
+            messageDiv.style.display = 'block';
+            setTimeout(() => messageDiv.style.display = 'none', 3000);
+        }
+
+        function selectSeat(deskId) {
+            const seatElement = document.querySelector(`.seat[data-desk-id="${deskId}"]`);
+            if (seatElement.classList.contains('reserved')) return;
+
+            const prev = document.querySelector('.seat.selected');
+            if (prev) prev.classList.remove('selected');
+
+            seatElement.classList.add('selected');
+            deskIdInput.value = deskId;
+            viewDeskSchedule(deskId);
+        }
+
+        function updateMapAvailability() {
+            const dateVal = dateInput.value;
+            const startVal = startTimeSelect.value;
+            const endVal = endTimeSelect.value;
+            
+            document.querySelectorAll('.seat').forEach(s => s.classList.remove('reserved'));
+
+            const selectedStartTime = new Date(`${dateVal}T${startVal}`);
+            const selectedEndTime = new Date(`${dateVal}T${endVal}`);
+
+            if (selectedStartTime >= selectedEndTime) return;
+
+            fetchLatestData().then(() => {
+                let reservedCount = 0;
+                currentBookings.forEach(booking => {
+                    const bStart = new Date(booking.start_time.replace(' ', 'T'));
+                    const bEnd = new Date(booking.end_time.replace(' ', 'T'));
+
+                    if (Math.max(selectedStartTime, bStart) < Math.min(selectedEndTime, bEnd)) {
+                        const seat = document.querySelector(`.seat[data-desk-id="${booking.desk_id}"]`);
+                        if (seat) {
+                            seat.classList.add('reserved');
+                            reservedCount++;
+                        }
+                    }
+                });
+
+                statAvailable.textContent = `Available: ${20 - reservedCount}`;
+                statReserved.textContent = `Reserved: ${reservedCount}`;
+
+                if (deskIdInput.value) {
+                    viewDeskSchedule(deskIdInput.value);
+                }
+            });
+        }
+
+        async function fetchLatestData() {
+            const res = await fetch('/bookings');
+            currentBookings = await res.json();
+        }
+
+        dateInput.addEventListener('change', updateMapAvailability);
+        startTimeSelect.addEventListener('change', updateMapAvailability);
+        endTimeSelect.addEventListener('change', updateMapAvailability);
+
+        document.getElementById('bookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!deskIdInput.value) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Please select a seat from the map.';
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            const data = {
+                desk_id: deskIdInput.value,
+                start_time: `${dateInput.value}T${startTimeSelect.value}`,
+                end_time: `${dateInput.value}T${endTimeSelect.value}`
+            };
+
+            const res = await fetch('/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (res.ok) {
+                messageDiv.className = 'message success';
+                messageDiv.textContent = result.message;
+                updateMapAvailability();
+            } else {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = result.error;
+            }
+            messageDiv.style.display = 'block';
+            setTimeout(() => messageDiv.style.display = 'none', 4000);
+        });
+
+        // Initialize Map and check for Dynamic QR Code URL parameter
+        fetchLatestData().then(() => {
+            updateMapAvailability();
+            
+            // --- DYNAMIC QR CODE LOGIC ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const deskFromURL = urlParams.get('desk');
+            
+            if (deskFromURL) {
+                // Wait briefly to ensure the map is fully loaded, then auto-select the desk
+                setTimeout(() => {
+                    selectSeat(parseInt(deskFromURL));
+                    document.getElementById('bookForm').scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>
