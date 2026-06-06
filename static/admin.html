@@ -48,6 +48,9 @@
         
         .nav-link { color: var(--text-light); text-decoration: none; font-weight: bold; font-size: 14px; }
         .nav-link:hover { color: var(--primary); }
+        
+        .logout-link { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 14px; margin-left: 15px;}
+        .logout-link:hover { text-decoration: underline; }
 
         /* KPI Dashboard Styles */
         .stats-grid {
@@ -119,7 +122,10 @@
     <div class="container">
         <div class="header-row">
             <h2>Staff Dashboard</h2>
-            <a href="/" class="nav-link">← Back to Map</a>
+            <div>
+                <a href="/" class="nav-link">← Back to Map</a>
+                <a href="/logout" class="logout-link">LOGOUT</a>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -159,18 +165,14 @@
 
         function calculateKPIs(bookings) {
             const now = new Date();
-            // Get local date string in YYYY-MM-DD format based on the browser's timezone
             const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
-            // 1. Total Bookings Today
             const todaysBookings = bookings.filter(b => b.start_time.startsWith(todayStr));
             document.getElementById('statTotalToday').textContent = todaysBookings.length;
 
-            // 2. Unique Students Today
             const uniqueStudents = new Set(todaysBookings.map(b => b.student_id)).size;
             document.getElementById('statUniqueStudents').textContent = uniqueStudents;
 
-            // 3. Active Right Now
             const activeNow = todaysBookings.filter(b => {
                 const start = new Date(b.start_time.replace(' ', 'T'));
                 const end = new Date(b.end_time.replace(' ', 'T'));
@@ -187,7 +189,6 @@
                 const res = await fetch('/bookings');
                 const bookings = await res.json();
                 
-                // Update KPI Dashboard
                 calculateKPIs(bookings);
 
                 container.innerHTML = '';
@@ -197,7 +198,6 @@
                     return;
                 }
 
-                // Sort bookings by date and time
                 bookings.sort((a, b) => new Date(a.start_time.replace(' ','T')) - new Date(b.start_time.replace(' ','T')));
 
                 bookings.forEach(b => {
@@ -222,16 +222,17 @@
             if(!confirm("Are you sure you want to revoke this student's reservation?")) return;
 
             const res = await fetch(`/cancel/${bookingId}`, { method: 'DELETE' });
+            const result = await res.json();
+
             if (res.ok) {
                 alert("Booking revoked successfully.");
                 loadAllBookings();
             } else {
-                alert("Error cancelling booking.");
+                alert(result.error || "Error cancelling booking.");
             }
         }
 
         loadAllBookings();
-        // Auto-refresh stats every 60 seconds
         setInterval(loadAllBookings, 60000);
     </script>
 </body>
