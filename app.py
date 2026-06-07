@@ -102,9 +102,31 @@ def admin_dashboard():
 @login_required
 def book_desk():
     data = request.json
-    new_booking = Booking(desk_id=int(data.get('desk_id')), student_id=current_user.student_id, start_time=datetime.strptime(data.get('start_time'), "%Y-%m-%dT%H:%M"), end_time=datetime.strptime(data.get('end_time'), "%Y-%m-%dT%H:%M"))
-    db.session.add(new_booking); db.session.commit()
-    return jsonify({"message": "Booked!"})
+    desk_id = int(data.get('desk_id'))
+    start_time = datetime.strptime(data.get('start_time'), "%Y-%m-%dT%H:%M")
+    end_time = datetime.strptime(data.get('end_time'), "%Y-%m-%dT%H:%M")
+
+    start_of_day = start_time.replace(hour=0, minute=0, second=0)
+    end_of_day = start_time.replace(hour=23, minute=59, second=59)
+    
+    daily_booking = Booking.query.filter(
+        Booking.student_id == current_user.student_id,
+        Booking.start_time >= start_of_day,
+        Booking.start_time <= end_of_day
+    ).first()
+
+    if daily_booking:
+        return jsonify({"error": "You can only book once per day."}), 400
+
+    new_booking = Booking(
+        desk_id=desk_id, 
+        student_id=current_user.student_id, 
+        start_time=start_time, 
+        end_time=end_time
+    )
+    db.session.add(new_booking)
+    db.session.commit()
+    return jsonify({"message": "Booked successfully!"})
 
 @app.route('/cancel/<booking_id>', methods=['DELETE'])
 @login_required
