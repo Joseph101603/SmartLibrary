@@ -5,107 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartLibrary - Home</title>
     <style>
-        :root {
-            --primary: #cc0000; 
-            --primary-hover: #a30000;
-            --bg: #f4f4f5;
-            --surface: #ffffff;
-            --text: #171717;
-            --text-light: #525252;
-            --border: #d4d4d8;
-            --seat-available: #ffffff;
-            --seat-reserved: #e4e4e7;
-            --seat-selected: #fef08a; 
-            --seat-selected-border: #eab308;
-        }
-        
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0; 
-            background-color: var(--bg); 
-            color: var(--text);
-        }
-
-        /* --- NAVBAR --- */
-        .navbar {
-            background-color: var(--surface);
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 3px solid var(--primary);
-        }
-
-        .nav-logo {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        :root { --primary: #cc0000; --primary-hover: #a30000; --bg: #f4f4f5; --surface: #ffffff; --text: #171717; --text-light: #525252; --border: #d4d4d8; --seat-available: #ffffff; --seat-reserved: #e4e4e7; --seat-selected: #fef08a; --seat-selected-border: #eab308; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background-color: var(--bg); color: var(--text); }
+        .navbar { background-color: var(--surface); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; border-bottom: 3px solid var(--primary); }
+        .nav-logo { font-size: 20px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .nav-center { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--text-light); }
+        .live-dot { height: 8px; width: 8px; background-color: #15803d; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(21, 128, 61, 0); } 100% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0); } }
         .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--text-light); font-weight: 600; font-size: 14px; text-transform: uppercase; transition: 0.2s;}
+        .nav-links a { text-decoration: none; color: var(--text-light); font-weight: 600; font-size: 14px; text-transform: uppercase; transition: 0.2s; cursor: pointer;}
         .nav-links a:hover { color: var(--primary); }
         .nav-links a.btn-logout { background: var(--text-light); color: white; padding: 8px 15px; border-radius: 4px; }
         .nav-links a.btn-logout:hover { background: var(--primary); }
-
-        /* --- HERO SECTION --- */
-        .hero {
-            background: linear-gradient(rgba(204, 0, 0, 0.85), rgba(163, 0, 0, 0.95)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-        }
-
+        .hero { background: linear-gradient(rgba(204, 0, 0, 0.85), rgba(163, 0, 0, 0.95)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover; color: white; padding: 60px 20px; text-align: center; }
         .hero h1 { font-size: 36px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
         .hero p { font-size: 18px; max-width: 600px; margin: 0 auto; opacity: 0.9; line-height: 1.6; }
-
-        /* --- MAIN CONTENT LAYOUT --- */
-        .main-wrapper {
-            display: flex;
-            gap: 30px;
-            padding: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-            align-items: flex-start;
-        }
-
-        /* --- LEFT COL: INFO CARDS --- */
+        .main-wrapper { display: flex; gap: 30px; padding: 40px; max-width: 1200px; margin: 0 auto; align-items: flex-start; }
         .info-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-        
-        .info-card {
-            background: var(--surface);
-            padding: 25px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-left: 4px solid var(--primary);
-        }
-
+        .info-card { background: var(--surface); padding: 25px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid var(--primary); }
         .info-card h3 { margin: 0 0 15px 0; color: var(--primary); font-size: 16px; text-transform: uppercase; letter-spacing: 1px;}
         .info-card ul { padding-left: 20px; margin: 0; color: var(--text-light); font-size: 14px; line-height: 1.8;}
         .info-card p { margin: 0; color: var(--text-light); font-size: 14px; line-height: 1.6;}
-
-        /* --- RIGHT COL: BOOKING SYSTEM --- */
-        .booking-col {
-            flex: 2;
-            background: var(--surface);
-            padding: 35px;
-            border-radius: 6px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-
+        /* NEW FEATURES STYLES */
+        .stats-highlight { background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: bold; color: #92400e; border: 1px solid #fde68a;}
+        .heatmap-bar { display: flex; align-items: flex-end; gap: 4px; height: 80px; padding-top: 10px; }
+        .bar { flex: 1; background: #cc0000; transition: height 0.5s; }
+        .booking-col { flex: 2; background: var(--surface); padding: 35px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .booking-header { border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 25px;}
         .booking-header h2 { margin: 0; font-size: 20px; color: var(--text); text-transform: uppercase; letter-spacing: 1px;}
-
-        /* Reused functional styles */
+        .my-reservation-banner { background: #dcfce3; border: 1px solid #4ade80; color: #166534; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; font-weight: 500; font-size: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
+        .banner-text { display: flex; align-items: center; gap: 10px; }
+        .btn-cancel-banner { background-color: #166534; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .btn-cancel-banner:hover { background-color: #14532d; }
         .stats-counter { background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 4px; text-align: center; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
         .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-light); text-transform: uppercase;}
@@ -129,41 +60,24 @@
         button.primary-btn:hover { background-color: var(--primary-hover); }
         button.cancel-btn { background-color: #525252; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; width: auto; font-weight: bold;}
         button.cancel-btn:hover { background-color: #262626; }
-
-        /* CUSTOM MODAL POPUP STYLES */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
         .modal-content { background: #ffffff; padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-top: 6px solid #cc0000; }
         .modal-title { margin-top: 0; font-size: 22px; text-transform: uppercase; color: #cc0000; }
         .modal-text { color: #525252; margin-bottom: 25px; font-size: 16px; line-height: 1.5; font-weight: 500;}
-
-        /* --- MOBILE RESPONSIVE DESIGN --- */
-        @media (max-width: 900px) {
-            /* Stack the layout: Map on top, Info Cards below */
-            .main-wrapper { flex-direction: column-reverse; padding: 15px; gap: 20px; }
-            .info-col, .booking-col { width: 100%; padding: 20px; box-sizing: border-box; }
-            
-            /* Shrink the headers */
-            .navbar { padding: 15px 20px; }
-            .hero { padding: 40px 15px; }
-            .hero h1 { font-size: 24px; }
-            
-            /* Fix the booking form and map for small screens */
-            .time-row { flex-direction: column; gap: 0; }
-            .seating-chart { gap: 6px; grid-template-columns: 1fr 1fr 20px 1fr 1fr; } /* Shrinks the middle aisle */
-            .seat { height: 45px; font-size: 12px; border-width: 1px; }
-            .stats-counter { font-size: 12px; display: flex; flex-direction: column; gap: 5px; }
-        }
+        @media (max-width: 900px) { .main-wrapper { flex-direction: column-reverse; padding: 15px; gap: 20px; } .info-col, .booking-col { width: 100%; padding: 20px; box-sizing: border-box; } .navbar { padding: 15px 20px; flex-wrap: wrap; gap: 10px; justify-content: center;} .nav-center { width: 100%; justify-content: center; margin-bottom: 5px;} .hero { padding: 40px 15px; } .hero h1 { font-size: 24px; } .time-row { flex-direction: column; gap: 0; } .seating-chart { gap: 6px; grid-template-columns: 1fr 1fr 20px 1fr 1fr; } .seat { height: 45px; font-size: 12px; border-width: 1px; } .stats-counter { font-size: 12px; display: flex; flex-direction: column; gap: 5px; } .my-reservation-banner { flex-direction: column; text-align: center; } }
     </style>
 </head>
 <body>
-
     <nav class="navbar">
         <div class="nav-logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
             SmartLibrary
         </div>
+        <div class="nav-center">
+            <span class="live-dot"></span> System Live | <span id="liveClock">Loading time...</span>
+        </div>
         <div class="nav-links">
-            <a href="/admin">Staff Panel</a>
+            <a onclick="checkAdminAccess()">Staff Panel</a>
             <a href="/logout" class="btn-logout">Logout</a>
         </div>
     </nav>
@@ -182,101 +96,58 @@
     </div>
 
     <div class="main-wrapper">
-        
         <aside class="info-col">
+            <div class="stats-highlight">My Usage: <span id="userUsage">0</span> hrs | <span id="userSessions">0</span> sessions.</div>
+            <div class="info-card">
+                <h3>Peak Hours (Today)</h3>
+                <div id="heatmap" class="heatmap-bar"></div>
+            </div>
             <div class="info-card">
                 <h3>Opening Hours</h3>
-                <ul>
-                    <li><strong>Monday - Friday:</strong> 8:00 AM - 8:00 PM</li>
-                    <li><strong>Saturday:</strong> 9:00 AM - 5:00 PM</li>
-                    <li><strong>Sunday:</strong> Closed</li>
-                </ul>
+                <ul><li><strong>Monday - Friday:</strong> 8:00 AM - 8:00 PM</li><li><strong>Saturday:</strong> 9:00 AM - 5:00 PM</li></ul>
             </div>
-
             <div class="info-card">
                 <h3>Booking Policies</h3>
-                <ul>
-                    <li>Maximum booking duration is <strong>3 hours</strong>.</li>
-                    <li>Students are limited to <strong>1 reservation per day</strong> to ensure fair access.</li>
-                    <li>Desks not claimed within 15 minutes of the start time may be revoked.</li>
-                </ul>
+                <ul><li>Max 3 hours booking.</li><li>Limit 1 reservation per day.</li></ul>
             </div>
-
             <div class="info-card">
                 <h3>Need Help?</h3>
-                <p>If you experience issues with the SmartLibrary portal, please approach the Front Circulation Desk or email IT support.</p>
+                <p>Approach the Front Desk or email IT support.</p>
             </div>
         </aside>
 
         <main class="booking-col">
-            <div class="booking-header">
-                <h2>Live Desk Availability</h2>
+            <div class="booking-header"><h2>Live Desk Availability</h2></div>
+            <div id="myReservationBanner" class="my-reservation-banner">
+                <div class="banner-text" id="myReservationText"></div>
+                <button id="myReservationCancelBtn" class="btn-cancel-banner" style="display:none;" onclick="cancelMyBannerBooking()">Cancel Reservation</button>
             </div>
-            
             <div id="statsCounter" class="stats-counter">
                 <span style="color: #525252;">Total Seats: 20</span> &nbsp;|&nbsp; 
                 <span id="statAvailable" style="color: #15803d;">Available: 20</span> &nbsp;|&nbsp; 
                 <span id="statReserved" style="color: #cc0000;">Reserved: 0</span>
             </div>
-
             <div class="library-floor">
                 <div class="floor-label">North Study Zone</div>
                 <div id="seatingChart" class="seating-chart"></div>
             </div>
-
             <div id="deskInfoPanel" class="desk-info-panel">
                 <h4 id="selectedDeskTitle">Desk Schedule</h4>
                 <ul id="deskScheduleList" class="schedule-list"></ul>
             </div>
-
             <form id="bookForm">
                 <input type="hidden" id="desk_id" name="desk_id" required>
-
                 <div class="form-group">
                     <label>Date</label>
                     <input type="date" id="book_date" required>
                 </div>
-                
                 <div class="time-row">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Start Time</label>
-                        <select id="start_time" required>
-                            <option value="08:00">8:00 AM</option>
-                            <option value="09:00" selected>9:00 AM</option>
-                            <option value="10:00">10:00 AM</option>
-                            <option value="11:00">11:00 AM</option>
-                            <option value="12:00">12:00 PM</option>
-                            <option value="13:00">1:00 PM</option>
-                            <option value="14:00">2:00 PM</option>
-                            <option value="15:00">3:00 PM</option>
-                            <option value="16:00">4:00 PM</option>
-                            <option value="17:00">5:00 PM</option>
-                            <option value="18:00">6:00 PM</option>
-                            <option value="19:00">7:00 PM</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>End Time (Max 3 Hrs)</label>
-                        <select id="end_time" required>
-                            <option value="09:00">9:00 AM</option>
-                            <option value="10:00">10:00 AM</option>
-                            <option value="11:00">11:00 AM</option>
-                            <option value="12:00" selected>12:00 PM</option>
-                            <option value="13:00">1:00 PM</option>
-                            <option value="14:00">2:00 PM</option>
-                            <option value="15:00">3:00 PM</option>
-                            <option value="16:00">4:00 PM</option>
-                            <option value="17:00">5:00 PM</option>
-                            <option value="18:00">6:00 PM</option>
-                            <option value="19:00">7:00 PM</option>
-                            <option value="20:00">8:00 PM</option>
-                        </select>
-                    </div>
+                    <div class="form-group" style="flex: 1;"><label>Start Time</label><select id="start_time" required><option value="08:00">8:00 AM</option><option value="09:00">9:00 AM</option><option value="10:00">10:00 AM</option><option value="11:00">11:00 AM</option><option value="12:00">12:00 PM</option><option value="13:00">1:00 PM</option><option value="14:00">2:00 PM</option><option value="15:00">3:00 PM</option><option value="16:00">4:00 PM</option><option value="17:00">5:00 PM</option><option value="18:00">6:00 PM</option><option value="19:00">7:00 PM</option></select></div>
+                    <div class="form-group" style="flex: 1;"><label>End Time</label><select id="end_time" required><option value="09:00">9:00 AM</option><option value="10:00">10:00 AM</option><option value="11:00">11:00 AM</option><option value="12:00">12:00 PM</option><option value="13:00">1:00 PM</option><option value="14:00">2:00 PM</option><option value="15:00">3:00 PM</option><option value="16:00">4:00 PM</option><option value="17:00">5:00 PM</option><option value="18:00">6:00 PM</option><option value="19:00">7:00 PM</option><option value="20:00">8:00 PM</option></select></div>
                 </div>
                 <button type="submit" class="primary-btn">Confirm Booking</button>
             </form>
         </main>
-
     </div>
 
     <script>
@@ -291,42 +162,53 @@
         const statReserved = document.getElementById('statReserved');
         
         let currentBookings = [];
+        let myStudentId = null;
+        let myActiveBookingId = null;
 
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
         dateInput.min = today;
 
+        async function checkAdminAccess() {
+            try {
+                const res = await fetch('/admin');
+                if (res.ok) { window.location.href = '/admin'; } 
+                else { const data = await res.json(); showModal("Access Denied", data.error, true); }
+            } catch (err) { showModal("Error", "Could not verify access.", true); }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('liveClock').textContent = `${hours}:${minutes} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
         function showModal(title, text, isError) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalText').textContent = text;
-            
             const titleEl = document.getElementById('modalTitle');
             const boxEl = document.getElementById('modalBox');
-            if (isError) {
-                titleEl.style.color = '#cc0000';
-                boxEl.style.borderTopColor = '#cc0000';
-            } else {
-                titleEl.style.color = '#15803d';
-                boxEl.style.borderTopColor = '#15803d';
-            }
+            if (isError) { titleEl.style.color = '#cc0000'; boxEl.style.borderTopColor = '#cc0000'; } 
+            else { titleEl.style.color = '#15803d'; boxEl.style.borderTopColor = '#15803d'; }
             document.getElementById('customModal').style.display = 'flex';
         }
 
-        function closeModal() {
-            document.getElementById('customModal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('customModal').style.display = 'none'; }
 
         function buildSeatingChart() {
             const chart = document.getElementById('seatingChart');
+            chart.innerHTML = '';
             let deskCounter = 1;
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
-                    if (col === 2) {
-                        chart.innerHTML += `<div class="aisle"></div>`;
-                    } else {
-                        chart.innerHTML += `<div class="seat" data-desk-id="${deskCounter}" onclick="selectSeat(${deskCounter})">S${deskCounter}</div>`;
-                        deskCounter++;
-                    }
+                    if (col === 2) { chart.innerHTML += `<div class="aisle"></div>`; } 
+                    else { chart.innerHTML += `<div class="seat" id="seat-${deskCounter}" data-desk-id="${deskCounter}" title="Available" onclick="selectSeat(${deskCounter})">S${deskCounter}</div>`; deskCounter++; }
                 }
             }
         }
@@ -345,94 +227,106 @@
             deskInfoPanel.style.display = 'block';
             selectedDeskTitle.textContent = `Schedule for Seat S${deskId} (${dateInput.value})`;
             deskScheduleList.innerHTML = '';
-
             const selectedDate = dateInput.value;
-            const deskBookings = currentBookings.filter(b => {
-                const bookingDate = b.start_time.split(' ')[0];
-                return b.desk_id == deskId && bookingDate === selectedDate;
-            });
-
-            if (deskBookings.length === 0) {
-                deskScheduleList.innerHTML = `<li class="no-bookings">No bookings for this date. Fully available.</li>`;
-            } else {
+            const deskBookings = currentBookings.filter(b => { const bookingDate = b.start_time.split(' ')[0]; return b.desk_id == deskId && bookingDate === selectedDate; });
+            if (deskBookings.length === 0) { deskScheduleList.innerHTML = `<li class="no-bookings">No bookings for this date. Fully available.</li>`; } 
+            else {
                 deskBookings.sort((a, b) => new Date(a.start_time.replace(' ','T')) - new Date(b.start_time.replace(' ','T')));
                 deskBookings.forEach(b => {
                     const li = document.createElement('li');
-                    li.innerHTML = `
-                        <div style="flex-grow: 1;">
-                            <span style="color: #92400e;"><b>${formatTime(b.start_time)} - ${formatTime(b.end_time)}</b></span><br>
-                            <span style="color: #78716c; font-size: 12px;">ID: ${b.student_id}</span>
-                        </div>
-                        <button type="button" class="cancel-btn" onclick="cancelBooking('${b.id}')">Cancel</button>
-                    `;
+                    let cancelButton = '';
+                    if (b.student_id === myStudentId) { cancelButton = `<button type="button" class="cancel-btn" onclick="cancelBooking('${b.id}')">Cancel</button>`; }
+                    li.innerHTML = `<div style="flex-grow: 1;"><span style="color: #92400e;"><b>${formatTime(b.start_time)} - ${formatTime(b.end_time)}</b></span><br><span style="color: #78716c; font-size: 12px;">ID: ${b.student_id}</span></div>${cancelButton}`;
                     deskScheduleList.appendChild(li);
                 });
             }
         }
 
         async function cancelBooking(bookingId) {
+            if(!confirm("Are you sure?")) return;
             const res = await fetch(`/cancel/${bookingId}`, { method: 'DELETE' });
-            const result = await res.json();
-            
-            if (res.ok) {
-                showModal("Success", result.message, false);
-                updateMapAvailability();
-            } else {
-                showModal("Failed to Cancel", result.error, true);
-            }
+            if (res.ok) { fetchLatestData(); deskInfoPanel.style.display = 'none'; }
         }
+
+        async function cancelMyBannerBooking() { if (myActiveBookingId) { await cancelBooking(myActiveBookingId); } }
 
         function selectSeat(deskId) {
             const seatElement = document.querySelector(`.seat[data-desk-id="${deskId}"]`);
             if (seatElement.classList.contains('reserved')) return;
-
             const prev = document.querySelector('.seat.selected');
             if (prev) prev.classList.remove('selected');
-
             seatElement.classList.add('selected');
             deskIdInput.value = deskId;
             viewDeskSchedule(deskId);
+        }
+
+        function checkMyReservation() {
+            const banner = document.getElementById('myReservationBanner');
+            const bannerText = document.getElementById('myReservationText');
+            const cancelBtn = document.getElementById('myReservationCancelBtn');
+            if (!myStudentId) return;
+            const myBooking = currentBookings.find(b => b.student_id === myStudentId && b.start_time.startsWith(today));
+            if (myBooking) {
+                myActiveBookingId = myBooking.id;
+                banner.style.display = 'flex';
+                cancelBtn.style.display = 'block';
+                bannerText.innerHTML = `<span>Seat S${myBooking.desk_id} (Today)</span>`;
+            } else { banner.style.display = 'none'; cancelBtn.style.display = 'none'; myActiveBookingId = null; }
         }
 
         function updateMapAvailability() {
             const dateVal = dateInput.value;
             const startVal = startTimeSelect.value;
             const endVal = endTimeSelect.value;
-            
-            document.querySelectorAll('.seat').forEach(s => s.classList.remove('reserved'));
-
+            document.querySelectorAll('.seat').forEach(s => { s.classList.remove('reserved'); s.setAttribute('title', 'Available'); });
             const selectedStartTime = new Date(`${dateVal}T${startVal}`);
             const selectedEndTime = new Date(`${dateVal}T${endVal}`);
-
             if (selectedStartTime >= selectedEndTime) return;
-
-            fetchLatestData().then(() => {
-                let reservedCount = 0;
-                currentBookings.forEach(booking => {
-                    const bStart = new Date(booking.start_time.replace(' ', 'T'));
-                    const bEnd = new Date(booking.end_time.replace(' ', 'T'));
-
-                    if (Math.max(selectedStartTime, bStart) < Math.min(selectedEndTime, bEnd)) {
-                        const seat = document.querySelector(`.seat[data-desk-id="${booking.desk_id}"]`);
-                        if (seat) {
-                            seat.classList.add('reserved');
-                            reservedCount++;
-                        }
-                    }
-                });
-
-                statAvailable.textContent = `Available: ${20 - reservedCount}`;
-                statReserved.textContent = `Reserved: ${reservedCount}`;
-
-                if (deskIdInput.value) {
-                    viewDeskSchedule(deskIdInput.value);
+            let reservedCount = 0;
+            currentBookings.forEach(booking => {
+                const bStart = new Date(booking.start_time.replace(' ', 'T'));
+                const bEnd = new Date(booking.end_time.replace(' ', 'T'));
+                if (Math.max(selectedStartTime, bStart) < Math.min(selectedEndTime, bEnd)) {
+                    const seat = document.querySelector(`.seat[data-desk-id="${booking.desk_id}"]`);
+                    if (seat) { seat.classList.add('reserved'); seat.setAttribute('title', 'Reserved'); reservedCount++; }
                 }
+            });
+            statAvailable.textContent = `Available: ${20 - reservedCount}`;
+            statReserved.textContent = `Reserved: ${reservedCount}`;
+            if (deskIdInput.value) viewDeskSchedule(deskIdInput.value);
+            checkMyReservation();
+        }
+
+        function renderHeatmap() {
+            const hours = new Array(12).fill(0);
+            currentBookings.forEach(b => {
+                const h = parseInt(b.start_time.split(' ')[1].split(':')[0]);
+                if(h >= 8 && h <= 19) hours[h - 8]++;
+            });
+            const heatmap = document.getElementById('heatmap');
+            heatmap.innerHTML = '';
+            hours.forEach((count, i) => {
+                const h = (count * 15) + 5; 
+                heatmap.innerHTML += `<div class="bar" style="height:${h}px" title="${i+8}:00 - ${count} bookings"></div>`;
             });
         }
 
         async function fetchLatestData() {
+            if (!myStudentId) {
+                try {
+                    const meRes = await fetch('/api/me');
+                    if (meRes.ok) { const meData = await meRes.json(); myStudentId = meData.student_id; }
+                } catch(e) {}
+            }
             const res = await fetch('/bookings');
             currentBookings = await res.json();
+            updateMapAvailability();
+            renderHeatmap();
+            
+            fetch('/api/my_stats').then(r => r.json()).then(data => {
+                document.getElementById('userUsage').textContent = data.total_hours;
+                document.getElementById('userSessions').textContent = data.total_sessions;
+            });
         }
 
         dateInput.addEventListener('change', updateMapAvailability);
@@ -441,46 +335,13 @@
 
         document.getElementById('bookForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (!deskIdInput.value) {
-                showModal("Missing Selection", "Please select a seat from the map before confirming.", true);
-                return;
-            }
-
-            const data = {
-                desk_id: deskIdInput.value,
-                start_time: `${dateInput.value}T${startTimeSelect.value}`,
-                end_time: `${dateInput.value}T${endTimeSelect.value}`
-            };
-
-            const res = await fetch('/book', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            
-            if (res.ok) {
-                showModal("Booking Confirmed!", result.message, false);
-                updateMapAvailability();
-            } else {
-                showModal("Booking Failed", result.error, true);
-            }
+            if (!deskIdInput.value) { showModal("Missing", "Select a seat first.", true); return; }
+            const data = { desk_id: deskIdInput.value, start_time: `${dateInput.value}T${startTimeSelect.value}`, end_time: `${dateInput.value}T${endTimeSelect.value}` };
+            const res = await fetch('/book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            if (res.ok) { showModal("Confirmed", "Booked!", false); fetchLatestData(); } else { showModal("Failed", "Booking failed.", true); }
         });
 
-        fetchLatestData().then(() => {
-            updateMapAvailability();
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const deskFromURL = urlParams.get('desk');
-            
-            if (deskFromURL) {
-                setTimeout(() => {
-                    selectSeat(parseInt(deskFromURL));
-                    document.getElementById('bookForm').scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-            }
-        });
+        fetchLatestData();
     </script>
 </body>
 </html>

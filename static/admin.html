@@ -122,17 +122,18 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             gap: 15px;
+            flex-wrap: wrap;
         }
 
-        .search-wrapper {
-            flex: 1;
+        .search-filters {
             display: flex;
+            gap: 10px;
+            flex: 1;
+            min-width: 300px;
             align-items: center;
         }
 
-        .search-wrapper input {
-            width: 100%;
-            max-width: 400px;
+        .search-filters input {
             padding: 12px 15px;
             border: 1px solid var(--border);
             border-radius: 4px;
@@ -141,7 +142,10 @@
             transition: 0.2s;
         }
 
-        .search-wrapper input:focus {
+        .search-filters input[type="text"] { flex: 2; min-width: 200px; }
+        .search-filters input[type="date"] { flex: 1; color: var(--text-light); font-weight: bold;}
+
+        .search-filters input:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(204,0,0,0.1);
         }
@@ -162,6 +166,9 @@
             letter-spacing: 0.5px;
             transition: 0.2s;
         }
+
+        .btn-clear { background-color: transparent; border: 1px solid var(--border); color: var(--text-light); padding: 12px 15px;}
+        .btn-clear:hover { background-color: var(--bg); color: var(--text); }
 
         .btn-export { background-color: #15803d; color: white; }
         .btn-export:hover { background-color: #166534; }
@@ -205,7 +212,8 @@
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr; gap: 15px; }
             .controls-bar { flex-direction: column; align-items: stretch; }
-            .search-wrapper input { max-width: 100%; }
+            .search-filters { flex-direction: column; width: 100%; }
+            .search-filters input { width: 100%; box-sizing: border-box; }
             .action-buttons { flex-direction: column; }
             .booking-card { flex-direction: column; align-items: flex-start; gap: 15px; }
             .btn-revoke { width: 100%; }
@@ -215,7 +223,6 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar">
         <div class="nav-logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
@@ -227,7 +234,6 @@
         </div>
     </nav>
 
-    <!-- MAIN DASHBOARD -->
     <main class="admin-wrapper">
         <div class="dashboard-header">
             <h1>System Overview</h1>
@@ -235,8 +241,8 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" id="statTotalToday">0</div>
-                <div class="stat-label">Bookings Today</div>
+                <div class="stat-value" id="statTotalFiltered">0</div>
+                <div class="stat-label" id="lblTotal">Total Bookings</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="statUniqueStudents">0</div>
@@ -249,8 +255,10 @@
         </div>
         
         <div class="controls-bar">
-            <div class="search-wrapper">
-                <input type="text" id="searchInput" placeholder="Search by Student ID or Desk Number...">
+            <div class="search-filters">
+                <input type="text" id="searchInput" placeholder="Search ID or Desk...">
+                <input type="date" id="dateFilter" title="Filter by specific date">
+                <button class="btn-clear" onclick="clearDateFilter()" title="Clear date filter">Clear</button>
             </div>
             <div class="action-buttons">
                 <button class="btn-export" onclick="exportToCSV()">Export Data (CSV)</button>
@@ -275,17 +283,20 @@
             return `${date} | ${formattedHour}:${min} ${ampm}`;
         }
 
-        function calculateKPIs(bookings) {
+        // Dynamically calculate KPIs based on what is currently filtered
+        function calculateKPIs(filteredBookings, isSpecificDate) {
             const now = new Date();
-            const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            
+            // 1. Total count of filtered list
+            document.getElementById('statTotalFiltered').textContent = filteredBookings.length;
+            document.getElementById('lblTotal').textContent = isSpecificDate ? "Bookings on Date" : "Total Bookings (All Time)";
 
-            const todaysBookings = bookings.filter(b => b.start_time.startsWith(todayStr));
-            document.getElementById('statTotalToday').textContent = todaysBookings.length;
-
-            const uniqueStudents = new Set(todaysBookings.map(b => b.student_id)).size;
+            // 2. Unique Students in the filtered list
+            const uniqueStudents = new Set(filteredBookings.map(b => b.student_id)).size;
             document.getElementById('statUniqueStudents').textContent = uniqueStudents;
 
-            const activeNow = todaysBookings.filter(b => {
+            // 3. Active right now (only calculated against the real-world current time)
+            const activeNow = filteredBookings.filter(b => {
                 const start = new Date(b.start_time.replace(' ', 'T'));
                 const end = new Date(b.end_time.replace(' ', 'T'));
                 return now >= start && now <= end;
@@ -298,10 +309,11 @@
             container.innerHTML = '';
             
             if (bookings.length === 0) {
-                container.innerHTML = '<div class="no-data">No active records found matching your criteria.</div>';
+                container.innerHTML = '<div class="no-data">No records found matching your filters.</div>';
                 return;
             }
 
+            // Sort by earliest start time
             bookings.sort((a, b) => new Date(a.start_time.replace(' ','T')) - new Date(b.start_time.replace(' ','T')));
 
             const now = new Date();
@@ -310,7 +322,16 @@
                 const start = new Date(b.start_time.replace(' ', 'T'));
                 const end = new Date(b.end_time.replace(' ', 'T'));
                 const isActive = now >= start && now <= end;
-                const badgeHtml = isActive ? `<span class="badge">ACTIVE NOW</span>` : '';
+                
+                // Show a badge if the booking has passed, is active, or is upcoming
+                let badgeHtml = '';
+                if (isActive) {
+                    badgeHtml = `<span class="badge">ACTIVE NOW</span>`;
+                } else if (now > end) {
+                    badgeHtml = `<span class="badge" style="background: #e4e4e7; color: #525252;">COMPLETED</span>`;
+                } else {
+                    badgeHtml = `<span class="badge" style="background: #dbeafe; color: #1e3a8a;">UPCOMING</span>`;
+                }
 
                 const card = document.createElement('div');
                 card.className = 'booking-card';
@@ -321,10 +342,44 @@
                         <p><strong>Student ID:</strong> ${b.student_id}</p>
                         <p><strong>Schedule:</strong> ${formatTime(b.start_time)} to ${formatTime(b.end_time).split(' | ')[1]}</p>
                     </div>
-                    <button class="btn-revoke" onclick="adminCancelBooking('${b.id}')">Revoke Access</button>
+                    <button class="btn-revoke" onclick="adminCancelBooking('${b.id}')">Revoke</button>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // Master Filter Function (Handles both Search Text and Date Selection)
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const dateVal = document.getElementById('dateFilter').value;
+            
+            let filtered = allBookingsData;
+
+            // Apply Date Filter
+            if (dateVal) {
+                filtered = filtered.filter(b => b.start_time.startsWith(dateVal));
+            }
+
+            // Apply Search Filter
+            if (searchTerm) {
+                filtered = filtered.filter(b => 
+                    b.student_id.toLowerCase().includes(searchTerm) || 
+                    b.desk_id.toString() === searchTerm ||
+                    `s${b.desk_id}` === searchTerm
+                );
+            }
+
+            calculateKPIs(filtered, !!dateVal);
+            renderBookings(filtered);
+        }
+
+        // Event Listeners for Live Filtering
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+
+        function clearDateFilter() {
+            document.getElementById('dateFilter').value = '';
+            applyFilters();
         }
 
         async function loadAllBookings() {
@@ -335,34 +390,13 @@
                 const res = await fetch('/bookings');
                 allBookingsData = await res.json();
                 
-                calculateKPIs(allBookingsData);
-                
-                // Reset search input on refresh
-                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                
-                if (searchTerm) {
-                    filterBookings(searchTerm);
-                } else {
-                    renderBookings(allBookingsData);
-                }
+                // Immediately apply whatever filters the admin currently has typed in
+                applyFilters();
                 
             } catch (error) {
                 container.innerHTML = '<div class="no-data" style="color: #cc0000;">Connection Error: Could not load database.</div>';
             }
         }
-
-        function filterBookings(term) {
-            const filtered = allBookingsData.filter(b => 
-                b.student_id.toLowerCase().includes(term) || 
-                b.desk_id.toString() === term ||
-                `s${b.desk_id}` === term
-            );
-            renderBookings(filtered);
-        }
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            filterBookings(e.target.value.toLowerCase());
-        });
 
         async function adminCancelBooking(bookingId) {
             if(!confirm("Are you sure you want to completely revoke this student's reservation? This action cannot be undone.")) return;
@@ -387,7 +421,15 @@
             const headers = ["Booking ID", "Desk Number", "Student ID", "Start Time", "End Time"];
             const csvRows = [headers.join(",")];
 
-            allBookingsData.forEach(b => {
+            // Export ONLY what is currently filtered, or everything if no filters
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const dateVal = document.getElementById('dateFilter').value;
+            let exportData = allBookingsData;
+
+            if (dateVal) exportData = exportData.filter(b => b.start_time.startsWith(dateVal));
+            if (searchTerm) exportData = exportData.filter(b => b.student_id.toLowerCase().includes(searchTerm) || `s${b.desk_id}` === searchTerm);
+
+            exportData.forEach(b => {
                 const row = [
                     b.id,
                     `S${b.desk_id}`,
@@ -409,6 +451,11 @@
             link.click();
             document.body.removeChild(link);
         }
+
+        // By default, set the date filter to today's date so the admin sees current info first
+        const now = new Date();
+        const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        document.getElementById('dateFilter').value = todayStr;
 
         // Initialize dashboard
         loadAllBookings();
