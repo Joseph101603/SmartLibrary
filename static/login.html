@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartLibrary - Login</title>
+    <title>SmartLibrary - Authentication</title>
     <style>
         :root {
             --primary: #cc0000; 
             --primary-hover: #a30000;
-            --bg: #f4f4f5;
             --surface: #ffffff;
             --text: #171717;
             --text-light: #525252;
@@ -18,40 +17,53 @@
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
             margin: 0; 
-            padding: 40px 20px; 
-            background-color: var(--bg); 
-            color: var(--text);
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            /* Matches the homepage hero banner */
+            background: linear-gradient(rgba(204, 0, 0, 0.85), rgba(163, 0, 0, 0.95)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
         }
         
         .auth-container { 
             width: 100%;
             max-width: 400px; 
             background: var(--surface); 
-            padding: 40px 30px; 
-            border-radius: 4px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            border-top: 5px solid var(--primary);
+            padding: 45px 35px; 
+            border-radius: 8px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            border-top: 6px solid var(--primary);
+            box-sizing: border-box;
+            margin: 20px;
         }
 
-        h2 { margin-top: 0; font-size: 24px; text-transform: uppercase; color: var(--primary); text-align: center; margin-bottom: 25px;}
-        
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-light); text-transform: uppercase;}
-        input, button { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 4px; font-size: 15px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        
-        button.primary-btn { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;}
-        button.primary-btn:hover { background-color: var(--primary-hover); }
+        .brand-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-        .toggle-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-light); }
-        .toggle-link a { color: var(--primary); cursor: pointer; text-decoration: none; font-weight: bold;}
-        .toggle-link a:hover { text-decoration: underline; }
+        .brand-logo svg {
+            width: 48px;
+            height: 48px;
+            color: var(--primary);
+        }
 
-        .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; font-weight: 500; display: none; text-align: center; font-size: 14px;}
+        h2 { margin: 0 0 5px 0; font-size: 22px; text-transform: uppercase; color: var(--text); text-align: center; letter-spacing: 1px;}
+        p.subtitle { text-align: center; color: var(--text-light); font-size: 14px; margin-bottom: 25px; }
+        
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px;}
+        input { width: 100%; padding: 14px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 4px; font-size: 15px; outline: none; transition: 0.2s; background: #fafafa;}
+        input:focus { border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(204,0,0,0.1);}
+        
+        button.primary-btn { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; transition: 0.2s;}
+        button.primary-btn:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+        .toggle-link { text-align: center; margin-top: 25px; font-size: 14px; color: var(--text-light); }
+        .toggle-link a { color: var(--primary); cursor: pointer; text-decoration: none; font-weight: bold; transition: 0.2s;}
+        .toggle-link a:hover { color: var(--primary-hover); text-decoration: underline; }
+
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 20px; font-weight: 500; display: none; text-align: center; font-size: 14px;}
         .error { background: #fee2e2; color: #991b1b; display: block; border: 1px solid #f87171;}
         .success { background: #dcfce3; color: #166534; display: block; border: 1px solid #4ade80; }
 
@@ -61,28 +73,38 @@
 <body>
     <div class="auth-container">
         
+        <div class="brand-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        </div>
+
+        <!-- LOGIN FORM -->
         <div id="loginForm">
-            <h2>Student Login</h2>
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Log in to reserve your study space</p>
             <div id="loginMessage" class="message"></div>
+            
             <form onsubmit="handleAuth(event, '/api/login')">
                 <div class="form-group">
                     <label>Student ID</label>
-                    <input type="text" id="login_student_id" required>
+                    <input type="text" id="login_student_id" placeholder="Enter your ID" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="login_password" required>
+                    <input type="password" id="login_password" placeholder="Enter your password" required>
                 </div>
                 <button type="submit" class="primary-btn">Sign In</button>
             </form>
             <div class="toggle-link">
-                Don't have an account? <a onclick="toggleForms()">Register here</a>
+                New student? <a onclick="toggleForms()">Create an account</a>
             </div>
         </div>
 
+        <!-- REGISTER FORM -->
         <div id="registerForm">
             <h2>Create Account</h2>
+            <p class="subtitle">Register to access SmartLibrary</p>
             <div id="registerMessage" class="message"></div>
+            
             <form onsubmit="handleAuth(event, '/api/register')">
                 <div class="form-group">
                     <label>University Email</label>
@@ -90,16 +112,16 @@
                 </div>
                 <div class="form-group">
                     <label>Student ID</label>
-                    <input type="text" id="reg_student_id" required>
+                    <input type="text" id="reg_student_id" placeholder="e.g. 2021105432" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="reg_password" required>
+                    <input type="password" id="reg_password" placeholder="Create a strong password" required>
                 </div>
                 <button type="submit" class="primary-btn">Register</button>
             </form>
             <div class="toggle-link">
-                Already registered? <a onclick="toggleForms()">Sign in</a>
+                Already registered? <a onclick="toggleForms()">Sign in instead</a>
             </div>
         </div>
 
@@ -124,6 +146,12 @@
             e.preventDefault();
             const isLogin = endpoint === '/api/login';
             const msgDiv = document.getElementById(isLogin ? 'loginMessage' : 'registerMessage');
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            // UI Feedback during loading
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
             
             const payload = {
                 student_id: document.getElementById(isLogin ? 'login_student_id' : 'reg_student_id').value,
@@ -134,29 +162,30 @@
                 payload.email = document.getElementById('reg_email').value;
             }
 
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            const result = await res.json();
-
-            if (res.ok) {
-                msgDiv.className = 'message success';
-                msgDiv.textContent = result.message;
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
                 
-                setTimeout(() => {
-                    // Redirect based on account type
-                    if (result.is_admin) {
-                        window.location.href = '/admin';
-                    } else {
-                        window.location.href = '/';
-                    }
-                }, 800);
-            } else {
+                const result = await res.json();
+
+                if (res.ok) {
+                    msgDiv.className = 'message success';
+                    msgDiv.textContent = result.message;
+                    setTimeout(() => window.location.href = '/', 800);
+                } else {
+                    msgDiv.className = 'message error';
+                    msgDiv.textContent = result.error;
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
                 msgDiv.className = 'message error';
-                msgDiv.textContent = result.error;
+                msgDiv.textContent = 'Connection error. Please try again.';
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
         }
     </script>
