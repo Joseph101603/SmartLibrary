@@ -145,8 +145,15 @@
             if (res.ok) {
                 msgDiv.className = 'message success';
                 msgDiv.textContent = result.message;
-                // Redirect to the main library map immediately after success!
-                setTimeout(() => window.location.href = '/', 800);
+                
+                setTimeout(() => {
+                    // Redirect based on account type
+                    if (result.is_admin) {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 800);
             } else {
                 msgDiv.className = 'message error';
                 msgDiv.textContent = result.error;

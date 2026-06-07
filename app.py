@@ -7,7 +7,6 @@ import uuid
 import os
 
 app = Flask(__name__, static_folder='static')
-# A secret key is required by Flask to keep user sessions secure
 app.secret_key = 'smartlibrary_capstone_secret_key' 
 
 # --- DATABASE CONFIGURATION ---
@@ -20,7 +19,6 @@ db = SQLAlchemy(app)
 # --- LOGIN MANAGER SETUP ---
 login_manager = LoginManager()
 login_manager.init_app(app)
-# If someone isn't logged in, redirect them to the login_page route
 login_manager.login_view = 'login_page' 
 
 # --- DATABASE MODELS ---
@@ -37,7 +35,6 @@ class Booking(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
 
-# Create the database file if it doesn't exist yet
 with app.app_context():
     db.create_all()
 
@@ -54,20 +51,18 @@ def login_page():
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
-    # Check if student already exists
     if User.query.filter_by(student_id=data['student_id']).first() or User.query.filter_by(email=data['email']).first():
         return jsonify({"error": "Student ID or Email already registered."}), 400
     
-    # Hash the password for security
     hashed_pw = generate_password_hash(data['password'], method='pbkdf2:sha256')
     new_user = User(student_id=data['student_id'], email=data['email'], password_hash=hashed_pw)
     
     db.session.add(new_user)
     db.session.commit()
     
-    # Automatically log them in after registering
     login_user(new_user)
-    return jsonify({"message": "Registration successful!"})
+    is_admin = (new_user.student_id.upper() == 'ADMIN')
+    return jsonify({"message": "Registration successful!", "is_admin": is_admin})
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -76,7 +71,9 @@ def login():
     
     if user and check_password_hash(user.password_hash, data['password']):
         login_user(user)
-        return jsonify({"message": "Login successful!"})
+        # Check if the user is the master admin
+        is_admin = (user.student_id.upper() == 'ADMIN')
+        return jsonify({"message": "Login successful!", "is_admin": is_admin})
     
     return jsonify({"error": "Invalid Student ID or password."}), 401
 
@@ -96,8 +93,7 @@ def index():
 @app.route('/admin')
 @login_required
 def admin_dashboard():
-    # SECURITY: Kick out anyone who isn't the master ADMIN account
-    if current_user.student_id != 'ADMIN':
+    if current_user.student_id.upper() != 'ADMIN':
         return "<h1>Access Denied</h1><p>This page is restricted to Library Staff only.</p><a href='/'>Return to Map</a>", 403
     return send_from_directory('static', 'admin.html')
 
@@ -109,22 +105,18 @@ def book_desk():
     start_str = data.get('start_time')
     end_str = data.get('end_time')
 
-    # Security Fix: Force the student_id to be the currently logged-in user
     active_student_id = current_user.student_id 
 
     start_time = datetime.strptime(start_str, "%Y-%m-%dT%H:%M")
     end_time = datetime.strptime(end_str, "%Y-%m-%dT%H:%M")
 
-    # Validation 1: End time must be after start time
     if start_time >= end_time:
         return jsonify({"error": "End time must be after start time."}), 400
 
-    # Validation 2: Maximum 3 Hours
     duration_hours = (end_time - start_time).total_seconds() / 3600
     if duration_hours > 3:
         return jsonify({"error": "Booking limit exceeded. Maximum 3 hours."}), 400
 
-    # Validation 3: One booking per day per student
     start_of_day = start_time.replace(hour=0, minute=0, second=0)
     end_of_day = start_time.replace(hour=23, minute=59, second=59)
     
@@ -137,13 +129,11 @@ def book_desk():
     if daily_booking:
         return jsonify({"error": "You can only book once per day. Please choose a different date."}), 400
 
-    # Validation 4: Check for overlaps with existing bookings on that desk
     existing_bookings = Booking.query.filter_by(desk_id=desk_id).all()
     for b in existing_bookings:
         if max(start_time, b.start_time) < min(end_time, b.end_time):
             return jsonify({"error": "Desk already booked for this time."}), 400
 
-    # Success: Save to the database
     new_booking = Booking(
         desk_id=desk_id,
         student_id=active_student_id,
@@ -158,8 +148,7 @@ def book_desk():
 @app.route('/cancel/<booking_id>', methods=['DELETE'])
 @login_required
 def cancel_booking(booking_id):
-    # SECURITY: Only the ADMIN can revoke bookings
-    if current_user.student_id != 'ADMIN':
+    if current_user.student_id.upper() != 'ADMIN':
         return jsonify({"error": "Unauthorized. Only staff can revoke bookings."}), 403
 
     booking = Booking.query.get(booking_id)
@@ -171,7 +160,6 @@ def cancel_booking(booking_id):
 
 @app.route('/bookings', methods=['GET'])
 def get_bookings():
-    # Fetch all bookings to populate the frontend maps and dashboards
     all_bookings = Booking.query.all()
     res = []
     for b in all_bookings:
@@ -185,5 +173,4 @@ def get_bookings():
     return jsonify(res)
 
 if __name__ == '__main__':
-    # Use 0.0.0.0 in production/cloud environments so it can be accessed externally
     app.run(host='0.0.0.0', debug=True, port=5000)

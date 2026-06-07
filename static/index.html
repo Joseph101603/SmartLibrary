@@ -165,7 +165,10 @@
     <div class="container">
         <h2>
             SmartLibrary Booking
-            <a href="/logout" class="logout-link">LOGOUT</a>
+            <div>
+                <a href="/admin" class="logout-link" style="margin-right: 15px;">STAFF PANEL</a>
+                <a href="/logout" class="logout-link">LOGOUT</a>
+            </div>
         </h2>
         
         <div id="statsCounter" class="stats-counter">
@@ -299,27 +302,10 @@
                             <span style="color: #92400e;"><b>${formatTime(b.start_time)} - ${formatTime(b.end_time)}</b></span><br>
                             <span style="color: #78716c; font-size: 12px;">ID: ${b.student_id}</span>
                         </div>
-                        <button type="button" class="cancel-btn" onclick="cancelBooking('${b.id}')">Cancel</button>
                     `;
                     deskScheduleList.appendChild(li);
                 });
             }
-        }
-
-        async function cancelBooking(bookingId) {
-            const res = await fetch(`/cancel/${bookingId}`, { method: 'DELETE' });
-            const result = await res.json();
-            
-            if (res.ok) {
-                messageDiv.className = 'message success';
-                messageDiv.textContent = result.message;
-                updateMapAvailability();
-            } else {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = result.error;
-            }
-            messageDiv.style.display = 'block';
-            setTimeout(() => messageDiv.style.display = 'none', 3000);
         }
 
         function selectSeat(deskId) {
@@ -383,16 +369,26 @@
             e.preventDefault();
             
             if (!deskIdInput.value) {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = 'Please select a seat from the map.';
-                messageDiv.style.display = 'block';
+                alert('Please select a seat from the map.');
+                return;
+            }
+
+            const startVal = startTimeSelect.value;
+            const endVal = endTimeSelect.value;
+            const selectedStartTime = new Date(`${dateInput.value}T${startVal}`);
+            const selectedEndTime = new Date(`${dateInput.value}T${endVal}`);
+            
+            // 3-Hour Limit Frontend Check
+            const durationHours = (selectedEndTime - selectedStartTime) / 3600000;
+            if (durationHours > 3) {
+                alert("You cannot exceed 3 hours. Your booking will not work.");
                 return;
             }
 
             const data = {
                 desk_id: deskIdInput.value,
-                start_time: `${dateInput.value}T${startTimeSelect.value}`,
-                end_time: `${dateInput.value}T${endTimeSelect.value}`
+                start_time: `${dateInput.value}T${startVal}`,
+                end_time: `${dateInput.value}T${endVal}`
             };
 
             const res = await fetch('/book', {
@@ -403,18 +399,16 @@
             const result = await res.json();
             
             if (res.ok) {
-                messageDiv.className = 'message success';
-                messageDiv.textContent = result.message;
+                // Success Popup
+                alert("You have booked successfully!");
+                messageDiv.style.display = 'none';
                 updateMapAvailability();
             } else {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = result.error;
+                // Error Popup
+                alert(result.error);
             }
-            messageDiv.style.display = 'block';
-            setTimeout(() => messageDiv.style.display = 'none', 4000);
         });
 
-        // Initialize Map and check for Dynamic QR Code URL parameter
         fetchLatestData().then(() => {
             updateMapAvailability();
             
@@ -423,7 +417,6 @@
             const deskFromURL = urlParams.get('desk');
             
             if (deskFromURL) {
-                // Wait briefly to ensure the map is fully loaded, then auto-select the desk
                 setTimeout(() => {
                     selectSeat(parseInt(deskFromURL));
                     document.getElementById('bookForm').scrollIntoView({ behavior: 'smooth' });
