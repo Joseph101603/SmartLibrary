@@ -106,6 +106,15 @@ def book_desk():
     start_time = datetime.strptime(data.get('start_time'), "%Y-%m-%dT%H:%M")
     end_time = datetime.strptime(data.get('end_time'), "%Y-%m-%dT%H:%M")
 
+    # --- FIX: Time Validation Logic ---
+    if start_time >= end_time:
+        return jsonify({"error": "Start time must be before end time."}), 400
+    
+    duration_hours = (end_time - start_time).total_seconds() / 3600
+    if duration_hours > 3:
+        return jsonify({"error": "Booking limit exceeded. Maximum 3 hours."}), 400
+    # --- END FIX ---
+
     start_of_day = start_time.replace(hour=0, minute=0, second=0)
     end_of_day = start_time.replace(hour=23, minute=59, second=59)
     
